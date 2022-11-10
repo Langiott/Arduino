@@ -1,0 +1,91 @@
+#include <avr/wdt.h>
+#include <SimpleDHT.h>
+#include <SoftwareSerial.h>
+#include <avr/sleep.h>
+
+SoftwareSerial sim800(3,2); 
+SimpleDHT11 dht11;
+
+void setup() {
+  //DEVO UTILIZARE UN ALTRO PIN PER INTERRUPT;
+  //PIN 2 & 3 SONO STATI SCELTI
+  pinMode(4,INPUT_PULLUP);
+  pinMode(13,OUTPUT);   
+  sim800.begin(9600);
+  Serial.begin(9600);
+  digitalWrite(13,HIGH);                   
+  while (Serial.available()) {       
+   
+   //wdt_enable(WDTO_4S);
+   delay(100);
+
+   sim800.println("AT");
+   updateSerial();
+   sim800.println("AT+CMGF=1");
+   updateSerial();
+   Serial.println("PRONTO");       
+   } 
+}
+
+
+
+void loop() {
+  
+  byte t = 0; //TEMPERATURA
+  byte u = 0; //UMIDITA'
+  int err = SimpleDHTErrSuccess;//ERRORE
+  if ((err = dht11.read(2,&t,&u,NULL))!= SimpleDHTErrSuccess ){
+    Serial.println("ERRORE DI LETTURA");
+    delay(1000);
+    return;
+   }//SE TUTTO VA BENE...
+
+  //INVIO DATI TEMPERATURA 
+  Serial.println(t,DEC);
+  sim800.println("AT+CMS=\"+3933961978\"");
+  updateSerial();
+  //INVIO DATI UMIDITA
+  Serial.println(u,DEC);
+  sim800.println("AT+CMS=\"+3933961978\"");
+  updateSerial();
+  //CHIUDO CANALE COMUNICAZIONE
+  sim800.write(26);
+  Serial.println("SMS INVIATO");
+  //ESEGUO ALTRO
+  delay(1000);
+
+  Serial.println("MODE SLEEP");
+  startSleep();  
+
+}
+
+void startSleep(){
+  attachInterrupt(digitalPinToInterrupt(2),wakeup_interrupt,LOW);
+  digitalWrite(13,LOW);
+  delay(100);
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable();
+  sleep_mode();
+  //...dopo aver premuto un bottone, cioè un interrupt, rinizia da qui...
+  sleep_disable();
+
+
+}
+
+
+void wakeup_interrupt(){
+  Serial.println("WAKE UP");
+  detachInterrupt(digitalPinToInterrupt(2));
+  digitalWrite(13,HIGH);
+}
+
+void updateSerial() {
+
+  delay(500);
+  while (Serial.available()) {
+   sim800.write(Serial.read());
+ } 
+ while (sim800.available()){
+   Serial.write(sim800.read());
+ } 
+} 
