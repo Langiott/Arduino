@@ -1,0 +1,91 @@
+/**
+ 
+  ARDUINO ROBOT CON CONTROLLO TELECOMANDO IR
+
+  Autore Fancello Salvatore
+ 
+ Per maggiori info: http://www.progettiarduino.com
+
+ **/
+
+#include <IRremote.h>
+/*ASSEGNAZIONE PIN AL DISPOSITIVO "RICEVENTE", CHE SE INVIATO UN SEGNALE 
+INFRAROSSI CON UN TELECOMADO ,PRENDERà IL SEGNALE E LO DECODIFICA*/
+int remoteInputPin = 2;
+IRrecv receiver(remoteInputPin);
+decode_results results;
+
+/*INIZIALIZZO IL NUMERO DEI PIN CORRISPONDENTI*/
+int motorD   = 8;
+int motorS   = 9;
+
+/*FUNZIONE VOID CHE NON RESTITUISCE NULLA MA MI PERMETTE DI CREARE I VARI 
+MOVIMENTI DEI ROBOT , AVENTI , INDIETRO , DASTRA SINISTRA IN BASE HAI MOTORINI 
+DELLE RUOTE CHE SE ATTIVATE ENTRAMBI E SE ATTIVATE UNA SINGOLA PRODURRA' UN MOVIMENTO */
+void setup() {
+
+  Serial.begin(9600);
+  /*RENDO POSSIBILE LA RICEZIONE DI UN SEGNALE INPUT AD INFRAROSSI*/
+  receiver.enableIRIn();
+
+  pinMode(motorD, OUTPUT);
+  pinMode(motorS, OUTPUT);
+ 
+}
+
+void avanti() {
+  digitalWrite(motorD, HIGH);
+  digitalWrite(motorS, HIGH);
+  
+}
+
+
+void sinistra() {
+  digitalWrite(motorD, HIGH);
+  digitalWrite(motorS, LOW);
+
+}
+
+void destra() {
+  digitalWrite(motorD, LOW);
+  digitalWrite(motorS, HIGH);
+  
+}
+
+void Stop() {
+  digitalWrite(motorS, LOW);
+  digitalWrite(motorD, LOW);
+   
+}
+
+/*FUNZIONE SEMPRE IN ESECUZIONE */
+void loop() {
+
+  /*NEL CASO IN CUI PRODUCA UN QUALSIASI SEGNALE (results)*/
+  if (receiver.decode(&results)) {
+    Serial.println(results.value, HEX);
+
+    /*SE IL COMANDO PREMUTO (CHE CORRISPONDE AD UN NUMERO es:0xD7E84B1B)
+    E' UGUALE AD UN CERTO VALORE ESEGUIRA' UNA FUNZIONE es:avanti()*/
+    if (results.value == 0xD7E84B1B) {
+      Serial.println("AVANTI");
+      avanti();
+    } 
+      else if (results.value == 0xF076C13B) {
+      Serial.println("SINISTRA");
+      sinistra();
+    } 
+      else if (results.value == 0xA3C8EDDB) {
+      Serial.println("DESTRA");
+      destra();
+    } 
+      else if (results.value == 0x20FE4DBB) {
+      Serial.println("STOP");
+      Stop();
+    }
+
+    receiver.resume();
+  }
+  /*SE NON RICEVE NIENTE NON FARA' NINTE*/
+}
+
