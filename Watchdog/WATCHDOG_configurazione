@@ -1,0 +1,61 @@
+
+
+/*
+DESCRIZIONE:
+SE VINE PREMUTO UN PULSANTE,
+ATTIVA SERIAL MONITOR E WATCHDOG (8 sec),
+NELLA FASE DI LOOP ACCENDIAMO UN LED , E POI SI RISETTA IL TIMER DEL WATCHDOG,
+RISVEGLIANDO IL MICONTROLLORE E RICOMINCIARE IL CICLO.
+
+*/
+
+/*
+PROBLEMI:
+-DEVO CAPIRE SE IL CICLO SI RIATTIVA 
+-VEDERE SE ANCOR PRIMA DI ESEGUIRE L' ACCENSIONO E LO SPEGNIMENTO DEL LED MI RISETTA 
+  TROPPO PRESTO IL WATCHDOG
+
+*/
+
+/*
+NON SO SE STO UTILIZZANDO BENE IL WATCHDOG. PERCHE MI SA CHE L 'ACCENSIONE DEL LED
+DEVE ESSERE DOPO IL RESET DEL TIMER DEL WATCHDOG E NON PRIMA.  
+
+
+*/
+
+#include <avr/wdt.h>
+
+
+int ledRed = 3;
+
+void setup() {
+
+  Serial.begin(9600);                //attivazione serial monitore
+  pinMode(2,INPUT_PULLUP);           //pulsante
+  pinMode(ledRed,OUTPUT);            // LED
+  digitalWrite(ledRed,LOW);
+  while (Serial.available()) {       //se Arduino sta funzionado 
+   Serial.println("conf_iniziale");  //setup
+   wdt_enable(WDTO_8S);             //attivazione watchdog
+   } 
+}
+
+void loop() {
+
+
+  int butt = HIGH;             //pulsante 
+  
+  while(butt) {
+  butt = digitalRead(2);
+  delay(1000);
+  digitalWrite(ledRed,HIGH);    //accensione led
+  delay(1000);                 // aspetta un secondo cioè 1000ms
+  digitalWrite(ledRed,LOW);     //spegnimento led
+  delay(100);
+  }
+
+  Serial.println("exit");      //instruzione finale
+  wdt_reset();                 //reset timer del watchdog 
+
+}
