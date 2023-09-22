@@ -2,7 +2,7 @@
 
 Arduino è una piattaforma di prototipazione open source ampiamente utilizzata per la creazione di dispositivi elettronici interattivi e progetti IoT (Internet delle cose). È composta da una scheda di sviluppo hardware, un ambiente di sviluppo software e una vasta comunità di appassionati e sviluppatori.
 
-![Arduino Uno R4 wi-fi](/ard.png)
+![Arduino Uno R4 wi-fi](/ard.jpg)
 
 ## Informazioni Chiave
 
